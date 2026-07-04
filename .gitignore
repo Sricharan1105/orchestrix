@@ -1,0 +1,22 @@
+# Python
+**/venv/
+**/__pycache__/
+**/.pytest_cache/
+**/*.pyc
+backend/test.db
+backend/orchestrix.db
+
+# Node
+**/node_modules/
+**/dist/
+
+# System / OS
+.DS_Store
+
+# Environment secrets
+.env
+**/.env
+.env.*
+**/.env.*
+!.env.example
+!**/.env.example
