@@ -76,16 +76,17 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     db.commit()
     db.refresh(project)
     
-    # Auto-create some default queues: email, payments, reports, notifications
+      # Auto-create default queues with unique names per user
     default_queues = [
         ("email", "HIGH", 10),
         ("payments", "HIGH", 5),
         ("reports", "MEDIUM", 2),
         ("notifications", "LOW", 15)
     ]
+
     for q_name, priority, concurrency in default_queues:
         db_queue = models.Queue(
-            name=q_name,
+            name=f"{q_name}_{user.username}",
             project_id=project.id,
             priority=priority,
             concurrency_limit=concurrency
@@ -93,7 +94,7 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
         db.add(db_queue)
         db.commit()
         db.refresh(db_queue)
-        
+
         # Add a default retry policy
         db_policy = models.RetryPolicy(
             queue_id=db_queue.id,
@@ -104,8 +105,9 @@ def create_user(db: Session, user: schemas.UserCreate) -> models.User:
         )
         db.add(db_policy)
         db.commit()
-        
+
     return db_user
+     
 
 # --- Project & Queue CRUD ---
 def get_projects(db: Session, user_id: int) -> List[models.Project]:
