@@ -35,57 +35,64 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = async (username, password) => {
-    // Request using standard application/x-www-form-urlencoded format for OAuth2PasswordRequestForm
-    const params = new URLSearchParams();
-    params.append('username', username);
-    params.append('password', password);
+  const params = new URLSearchParams();
+  params.append('username', username);
+  params.append('password', password);
 
-    const response = await fetch('/api/auth/login', {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/auth/login`,
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: params,
-    });
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.detail || 'Login failed');
     }
+  );
 
-    const { access_token } = await response.json();
-    localStorage.setItem('token', access_token);
-    setToken(access_token);
-    
-    // Fetch profile
-    const profileRes = await fetch('/api/auth/me', {
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.detail || 'Login failed');
+  }
+
+  const { access_token } = await response.json();
+  localStorage.setItem('token', access_token);
+  setToken(access_token);
+
+  const profileRes = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/auth/me`,
+    {
       headers: {
         'Authorization': `Bearer ${access_token}`,
       },
-    });
-    if (profileRes.ok) {
-      const userData = await profileRes.json();
-      setUser(userData);
     }
-  };
+  );
 
-  const register = async (username, password) => {
-    const response = await fetch('/api/auth/register', {
+  if (profileRes.ok) {
+    const userData = await profileRes.json();
+    setUser(userData);
+  }
+};
+ const register = async (username, password) => {
+  const response = await fetch(
+    `${import.meta.env.VITE_API_URL}/api/auth/register`,
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ username, password }),
-    });
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new Error(data.detail || 'Registration failed');
     }
+  );
 
-    // Auto-login after registration
-    await login(username, password);
-  };
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.detail || 'Registration failed');
+  }
+
+  // Auto-login after registration
+  await login(username, password);
+};
 
   const logout = () => {
     localStorage.removeItem('token');
